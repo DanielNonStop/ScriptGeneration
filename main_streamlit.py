@@ -11,6 +11,8 @@ st.title("AI Script Generator")
 
 st.sidebar.header("Configuration")
 
+st.session_state["script_count"] = 0
+
 # Choose model
 model = st.sidebar.selectbox(
     "Choose a model",
@@ -52,17 +54,12 @@ keywords = st.text_input(
     "resilience, success, persistence"
 )
 
-if "history" not in st.session_state:
-    st.session_state["history"] = []
-
-
-def build_system_prompt():
-    return f"""
+default_instruction = """
     You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
     
     Requirements:
-        1. Generate a complete, polished video script in {language}.
-        2. Adopt a {tone_of_voice} tone throughout the script.
+        1. Generate a complete, polished video script in language, provided by user.
+        2. Adopt a tone throughout the script to the one provided by user.
         3. If keywords are provided, integrate them seamlessly and naturally into the text.
         4. The script must be concise, fluid, and designed for spoken delivery in a short-form video. Avoid dividing the
         content into separate scenes or parts—the output should be a continuous narrative.
@@ -74,6 +71,21 @@ def build_system_prompt():
         (e.g., YouTube Shorts, TikTok, Instagram Reels), or subject matter.
     """
 
+input_instruction = st.sidebar.text_area(
+    "Input Prompt",
+    default_instruction,
+    height=250
+)
+
+if "history" not in st.session_state:
+    st.session_state["history"] = []
+
+
+def build_system_prompt():
+    if input_instruction == '':
+        return default_instruction
+    return input_instruction
+
 
 def build_user_prompt():
     return f"""
@@ -81,7 +93,11 @@ def build_user_prompt():
         
         Keywords: {keywords or 'None'}
         
-        Target platform: {platform or 'None'}  
+        Target platform: {platform or 'None'}
+
+        Language: {language}
+
+        Tone of voice: {tone_of_voice}
     """
 
 

@@ -121,6 +121,7 @@ if st.button("Generate Script"):
     )
 
     output = response.choices[0].message.content
+    print(f"Output: {output}")
     total_tokens = response.usage.total_tokens
 
     st.session_state["script_count"] += 1

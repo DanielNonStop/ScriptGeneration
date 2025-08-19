@@ -120,7 +120,7 @@ if st.button("Generate Script"):
         **additional_kwargs
     )
 
-    output = response.choices[0].message["content"]
+    output = response.choices[0].message.content
     total_tokens = response.usage.total_tokens
 
     st.session_state["script_count"] += 1

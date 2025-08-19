@@ -153,6 +153,6 @@ if st.session_state["history"]:
         st.write(f"**Input Idea:** {entry['input_text']}")
         st.write(f"**Temperature:** {entry['temperature']}")
         st.write(f"**Max Tokens:** {entry['max_tokens']}")
-        st.markdown(f"**Generated Script:**\n\n{entry['output']}")
+        st.write(f"**Generated Script:**\n\n{entry['output']}")
         st.write(f"**Total Tokens Used:** {entry['total_tokens']}")
         st.write("---")

@@ -31,6 +31,12 @@ language = st.sidebar.selectbox(
     index=0
 )
 
+platform = st.sidebar.selectbox(
+    "Target platform",
+    options=["Instagram", "YouTube", "TikTok"],
+    index=0
+)
+
 # Temperature and tokens
 temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.7, 0.01)
 max_tokens = st.sidebar.slider("Max Tokens", 200, 1200, 700, 50)
@@ -52,14 +58,20 @@ if "history" not in st.session_state:
 
 def build_system_prompt():
     return f"""
-        You are an assistant for generating engaging video scripts.
-        
-        Requirements:
-        1. Generate a complete video script in {language}.
-        2. Use a {tone_of_voice} tone of voice.
-        3. If keywords are provided, make sure they are naturally included.
-        4. The script should be concise, engaging, and ready to be spoken in a video.
-        5. Return only the script text, no explanations.
+    You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
+    
+    Requirements:
+        1. Generate a complete, polished video script in {language}.
+        2. Adopt a {tone_of_voice} tone throughout the script.
+        3. If keywords are provided, integrate them seamlessly and naturally into the text.
+        4. The script must be concise, fluid, and designed for spoken delivery in a short-form video. Avoid dividing the
+        content into separate scenes or parts—the output should be a continuous narrative.
+        5. Ensure the script captures attention quickly, maintains viewer engagement, and ends with a clear, impactful
+        closing line.
+        6.The output should be only the final script text, without explanations, notes, or formatting beyond the natural
+        flow of the script.
+        7. (Optional, if input is provided) Adapt the script to the target audience, platform
+        (e.g., YouTube Shorts, TikTok, Instagram Reels), or subject matter.
     """
 
 
@@ -67,7 +79,9 @@ def build_user_prompt():
     return f"""
         User script idea: {input_text}
         
-        Keywords: {keywords or 'None'}  
+        Keywords: {keywords or 'None'}
+        
+        Target platform: {platform or 'None'}  
     """
 
 
@@ -80,11 +94,17 @@ if st.button("Generate Script"):
     ]
 
     try:
+
+        additional_kwargs = (
+            {"max_completion_tokens": max_tokens, "temperature": 1}
+            if model in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}
+            else {"max_tokens": max_tokens, "temperature": temperature}
+        )
+
         response = client.chat.completions.create(
             model=model,
             messages=messages,
-            max_tokens=max_tokens,
-            temperature=temperature
+            **additional_kwargs
         )
 
         output = response.choices[0].message.content

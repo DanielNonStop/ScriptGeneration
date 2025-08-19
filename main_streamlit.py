@@ -108,38 +108,33 @@ if st.button("Generate Script"):
         {"role": "user", "content": build_user_prompt()},
     ]
 
-    try:
+    additional_kwargs = (
+        {"max_completion_tokens": max_tokens, "temperature": 1}
+        if model in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}
+        else {"max_tokens": max_tokens, "temperature": temperature}
+    )
 
-        additional_kwargs = (
-            {"max_completion_tokens": max_tokens, "temperature": 1}
-            if model in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}
-            else {"max_tokens": max_tokens, "temperature": temperature}
-        )
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+        **additional_kwargs
+    )
 
-        response = client.chat.completions.create(
-            model=model,
-            messages=messages,
-            **additional_kwargs
-        )
+    output = response.choices[0].message["content"]
+    total_tokens = response.usage.total_tokens
 
-        output = response.choices[0].message.content
-        total_tokens = response.usage.total_tokens
-
-        st.session_state["script_count"] += 1
-        st.session_state["history"].append({
-            "model": model,
-            "tone_of_voice": tone_of_voice,
-            "language": language,
-            "input_text": input_text,
-            "keywords": keywords,
-            "output": output,
-            "total_tokens": total_tokens,
-            "temperature": temperature,
-            "max_tokens": max_tokens
-        })
-
-    except Exception as e:
-        st.error(f"An error occurred: {e}")
+    st.session_state["script_count"] += 1
+    st.session_state["history"].append({
+        "model": model,
+        "tone_of_voice": tone_of_voice,
+        "language": language,
+        "input_text": input_text,
+        "keywords": keywords,
+        "output": output,
+        "total_tokens": total_tokens,
+        "temperature": temperature,
+        "max_tokens": max_tokens
+    })
 
 # Display history
 if st.session_state["history"]:

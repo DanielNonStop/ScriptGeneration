@@ -12,25 +12,40 @@ tone_of_voice = "casual"
 language = "English"
 
 temperature = 0.8
-model = "gpt-4o-mini"
-max_output_tokens = 700
+model = "gpt-5"
+max_output_tokens = 1500
+platform = "Instagram"
 
 system_prompt = f"""
-You are an assistant for generating engaging video scripts.
+You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
 
 Requirements:
-1. Generate a complete video script in {language}.
-2. Use a {tone_of_voice} tone of voice.
-3. If keywords are provided, make sure they are naturally included.
-4. The script should be concise, engaging, and ready to be spoken in a video.
-5. Return only the script text, no explanations.
+    1. Generate a complete, polished video script in {language}.
+    2. Adopt a {tone_of_voice} tone throughout the script.
+    3. If keywords are provided, integrate them seamlessly and naturally into the text.
+    4. The script must be concise, fluid, and designed for spoken delivery in a single video. Avoid dividing the
+    content into separate scenes or parts - the output should be a continuous narrative.
+    5. Ensure the script captures attention quickly, maintains viewer engagement, and ends with a clear, impactful
+    closing line.
+    6.The output should be only the final script text, without explanations, notes, or formatting beyond the natural
+    flow of the script.
+    7. (Optional, if input is provided) Adapt the script to the target audience, platform
+    (e.g., YouTube Shorts, TikTok, Instagram Reels), or subject matter.
 """
 
 user_prompt = f"""
 User request: {client_input_text}
 
 Keywords: {", ".join(keywords) if keywords else "None"}
+
+Target platform: {platform if platform else "None"}
 """
+
+additional_kwargs = (
+    {"max_completion_tokens": max_output_tokens, "temperature": 1}
+    if model in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}
+    else {"max_tokens": max_output_tokens, "temperature": temperature}
+)
 
 response = client.chat.completions.create(
     messages=[
@@ -38,8 +53,7 @@ response = client.chat.completions.create(
         {"role": "user", "content": user_prompt},
     ],
     model=model,
-    max_tokens=max_output_tokens,
-    temperature=temperature
+    **additional_kwargs
 )
 
 output_script = response.choices[0].message.content

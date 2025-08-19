@@ -46,7 +46,7 @@ max_tokens = st.sidebar.slider("Max Tokens", 200, 1200, 700, 50)
 input_text = st.text_area(
     "Describe your script idea",
     "A motivational video about staying strong after failure.",
-    height=150
+    height=450
 )
 
 keywords = st.text_input(
@@ -54,8 +54,7 @@ keywords = st.text_input(
     "resilience, success, persistence"
 )
 
-default_instruction = """
-    You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
+default_instruction = """You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
     
     Requirements:
         1. Generate a complete, polished video script in language, provided by user.

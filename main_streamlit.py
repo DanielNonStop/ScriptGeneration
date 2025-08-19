@@ -71,10 +71,10 @@ default_instruction = """
         (e.g., YouTube Shorts, TikTok, Instagram Reels), or subject matter.
     """
 
-input_instruction = st.sidebar.text_area(
+input_instruction = st.text_area(
     "Input Prompt",
     default_instruction,
-    height=250
+    height=150
 )
 
 if "history" not in st.session_state:

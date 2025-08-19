@@ -108,11 +108,10 @@ if st.button("Generate Script"):
         {"role": "user", "content": build_user_prompt()},
     ]
 
-    additional_kwargs = (
-        {"max_completion_tokens": max_tokens, "temperature": 1}
-        if model in {"gpt-5", "gpt-5-mini", "gpt-5-nano"}
-        else {"max_tokens": max_tokens, "temperature": temperature}
-    )
+    if model in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]:
+        additional_kwargs = {"max_completion_tokens": max_tokens, "temperature": 1}
+    else:
+        additional_kwargs = {"max_tokens": max_tokens, "temperature": temperature}
 
     response = client.chat.completions.create(
         model=model,

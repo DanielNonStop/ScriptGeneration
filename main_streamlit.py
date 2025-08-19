@@ -46,7 +46,7 @@ max_tokens = st.sidebar.slider("Max Tokens", 200, 1200, 700, 50)
 input_text = st.text_area(
     "Describe your script idea",
     "A motivational video about staying strong after failure.",
-    height=450
+    height=150
 )
 
 keywords = st.text_input(
@@ -73,7 +73,7 @@ default_instruction = """You are an AI assistant specialized in creating engagin
 input_instruction = st.text_area(
     "Input Prompt",
     default_instruction,
-    height=150
+    height=350
 )
 
 if "history" not in st.session_state:

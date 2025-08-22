@@ -41,7 +41,7 @@ platform = st.sidebar.selectbox(
 
 # Temperature and tokens
 temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.7, 0.01)
-max_tokens = st.sidebar.slider("Max Tokens", 200, 1200, 700, 50)
+speech_duration = st.sidebar.slider("Duration of speech (seconds)", 20, 180, 60, 5)
 
 input_text = st.text_area(
     "Describe your script idea",
@@ -54,19 +54,22 @@ keywords = st.text_input(
     "resilience, success, persistence"
 )
 
-default_instruction = """You are an AI assistant specialized in creating engaging video scripts for content creators and related industries.
-    
+default_instruction = """
+    You are an AI assistant specialized in creating video scripts for content creators and related industries.
+        
+    Task:
+        - Generate a complete, polished video script which reveals the topic provided by user
+        - Script must be generated in the language provided by user
+        - If keywords are provided, integrate them seamlessly and naturally into the video script 
+        - Adopt a tone throughout the script to the one provided by user.
+        - If video script is big enough, try to split it on meaningful paragraphs.
+
     Requirements:
-        1. Generate a complete, polished video script in language, provided by user.
-        2. Adopt a tone throughout the script to the one provided by user.
-        3. If keywords are provided, integrate them seamlessly and naturally into the text.
-        4. The script must be concise, fluid, and designed for spoken delivery in a short-form video. Avoid dividing the
-        content into separate scenes or parts—the output should be a continuous narrative.
-        5. Ensure the script captures attention quickly, maintains viewer engagement, and ends with a clear, impactful
-        closing line.
-        6.The output should be only the final script text, without explanations, notes, or formatting beyond the natural
-        flow of the script.
-        7. (Optional, if input is provided) Adapt the script to the target audience, platform
+        1. The script must be concise, fluid, and designed for spoken delivery in a short-form video. Avoid dividing the content into separate scenes — the output should be a continuous narrative.
+        2. Ensure the script captures attention quickly, maintains viewer engagement, and ends with a clear, impactful closing line.
+        3. Output should be only the final script text, without explanations, notes, or formatting beyond the natural flow of the script.
+        4. The length of output text should match the length of speech requested by user.
+        5. (Optional, if input is provided) Adapt the script to the target audience, platform
         (e.g., YouTube Shorts, TikTok, Instagram Reels), or subject matter.
     """
 
@@ -97,6 +100,8 @@ def build_user_prompt():
         Language: {language}
 
         Tone of voice: {tone_of_voice}
+
+        Speech duration: {speech_duration} seconds
     """
 
 
@@ -109,14 +114,12 @@ if st.button("Generate Script"):
     ]
 
     if model in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]:
-        additional_kwargs = {"max_completion_tokens": max_tokens, "temperature": 1}
-    else:
-        additional_kwargs = {"max_tokens": max_tokens, "temperature": temperature}
+        temperature = 1
 
     response = client.chat.completions.create(
         model=model,
         messages=messages,
-        **additional_kwargs
+        temperature=temperature
     )
 
     output = response.choices[0].message.content
@@ -133,7 +136,7 @@ if st.button("Generate Script"):
         "output": output,
         "total_tokens": total_tokens,
         "temperature": temperature,
-        "max_tokens": max_tokens
+        "speech_duration": speech_duration
     })
 
 # Display history
@@ -147,7 +150,7 @@ if st.session_state["history"]:
         st.write(f"**Keywords:** {entry['keywords']}")
         st.write(f"**Input Idea:** {entry['input_text']}")
         st.write(f"**Temperature:** {entry['temperature']}")
-        st.write(f"**Max Tokens:** {entry['max_tokens']}")
+        st.write(f"**Speech duration:** {entry['speech_duration']}")
         st.write(f"**Generated Script:**\n\n{entry['output']}")
         st.write(f"**Total Tokens Used:** {entry['total_tokens']}")
         st.write("---")

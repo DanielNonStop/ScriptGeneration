@@ -40,7 +40,18 @@ platform = st.sidebar.selectbox(
 )
 
 # Temperature and tokens
-temperature = st.sidebar.slider("Creativity (Temperature)", 0.0, 1.0, 0.7, 0.01)
+if model in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]:
+    st.sidebar.write("Creativity (Temperature): fixed at 1.0 for gpt-5 models")
+    temperature = 1.0
+else:
+    temperature = st.sidebar.slider(
+        "Creativity (Temperature)", 
+        0.0, 
+        1.0, 
+        0.7, 
+        0.01
+    )
+
 speech_duration = st.sidebar.slider("Duration of speech (seconds)", 20, 180, 60, 5)
 
 input_text = st.text_area(
@@ -112,9 +123,6 @@ if st.button("Generate Script"):
         {"role": "system", "content": build_system_prompt()},
         {"role": "user", "content": build_user_prompt()},
     ]
-
-    if model in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]:
-        temperature = 1
 
     response = client.chat.completions.create(
         model=model,

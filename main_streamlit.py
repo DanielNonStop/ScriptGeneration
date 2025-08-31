@@ -11,35 +11,40 @@ st.title("AI Script Generator")
 
 st.sidebar.header("Configuration")
 
-st.session_state["script_count"] = 0
+# --- Initialize session state ---
+if "script_count" not in st.session_state:
+    st.session_state["script_count"] = 0
+if "history" not in st.session_state:
+    st.session_state["history"] = []
 
-# Choose model
+# --- Model selection ---
 model = st.sidebar.selectbox(
     "Choose a model",
     options=["gpt-5", "gpt-5-mini", "gpt-5-nano", "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano"]
 )
 
-# Tone of voice selection
+# --- Tone of voice ---
 tone_of_voice = st.sidebar.selectbox(
     "Tone of voice",
     options=["casual", "professional", "humorous", "inspirational", "dramatic"],
     index=0
 )
 
-# Language selection
+# --- Language ---
 language = st.sidebar.selectbox(
     "Script language",
     options=["English", "Ukrainian", "Spanish", "French", "German", "Italian", "Portuguese"],
     index=0
 )
 
+# --- Platform ---
 platform = st.sidebar.selectbox(
     "Target platform",
     options=["Instagram", "YouTube", "TikTok"],
     index=0
 )
 
-# Temperature and tokens
+# --- Temperature ---
 if model in ["gpt-5", "gpt-5-mini", "gpt-5-nano"]:
     st.sidebar.write("Creativity (Temperature): fixed at 1.0 for gpt-5 models")
     temperature = 1.0
@@ -52,8 +57,10 @@ else:
         0.01
     )
 
+# --- Duration ---
 speech_duration = st.sidebar.slider("Duration of speech (seconds)", 20, 180, 60, 5)
 
+# --- Input fields ---
 input_text = st.text_area(
     "Describe your script idea",
     "A motivational video about staying strong after failure.",
@@ -65,6 +72,7 @@ keywords = st.text_input(
     "resilience, success, persistence"
 )
 
+# --- Default system instruction ---
 default_instruction = """
     You are an AI assistant specialized in creating video scripts for content creators and related industries.
         
@@ -90,15 +98,25 @@ input_instruction = st.text_area(
     height=350
 )
 
-if "history" not in st.session_state:
-    st.session_state["history"] = []
+# --- Reference options ---
+use_history_as_reference = st.sidebar.checkbox("Use previous scripts as style reference", value=False)
+
+selected_refs = []
+if use_history_as_reference and st.session_state["history"]:
+    options = [f"Script {i+1}: {entry['input_text'][:40]}..." 
+               for i, entry in enumerate(st.session_state["history"])]
+    selected_refs = st.sidebar.multiselect(
+        "Select past scripts to use as reference",
+        options=options,
+        default=[]
+    )
 
 
+# --- Prompt builders ---
 def build_system_prompt():
-    if input_instruction == '':
+    if input_instruction.strip() == '':
         return default_instruction
     return input_instruction
-
 
 def build_user_prompt():
     return f"""
@@ -115,14 +133,33 @@ def build_user_prompt():
         Speech duration: {speech_duration} seconds
     """
 
+def build_reference_messages():
+    reference_messages = []
+    if use_history_as_reference and selected_refs:
+        for ref_label in selected_refs:
+            idx = int(ref_label.split()[1].replace(":", "")) - 1
+            if 0 <= idx < len(st.session_state["history"]):
+                example = st.session_state["history"][idx]
+                reference_messages.append({
+                    "role": "user",
+                    "content": f"(Example) Script idea: {example['input_text']}"
+                })
+                reference_messages.append({
+                    "role": "assistant",
+                    "content": example['output']
+                })
+    return reference_messages
 
-# Generate button
+
+# --- Generate button ---
 if st.button("Generate Script"):
+    messages = [{"role": "system", "content": build_system_prompt()}]
 
-    messages = [
-        {"role": "system", "content": build_system_prompt()},
-        {"role": "user", "content": build_user_prompt()},
-    ]
+    # Add past style references
+    messages.extend(build_reference_messages())
+
+    # Add new request
+    messages.append({"role": "user", "content": build_user_prompt()})
 
     response = client.chat.completions.create(
         model=model,
@@ -131,7 +168,6 @@ if st.button("Generate Script"):
     )
 
     output = response.choices[0].message.content
-    print(f"Output: {output}")
     total_tokens = response.usage.total_tokens
 
     st.session_state["script_count"] += 1
@@ -147,7 +183,7 @@ if st.button("Generate Script"):
         "speech_duration": speech_duration
     })
 
-# Display history
+# --- Display history ---
 if st.session_state["history"]:
     st.subheader("Script History")
     for idx, entry in enumerate(reversed(st.session_state["history"])):
